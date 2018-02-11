@@ -1,11 +1,24 @@
 <resources>
     <!-- detail -->
-    <dimen name="detail_title_text_size">32sp</dimen>
-    <dimen name="detail_body_text_size">22sp</dimen>
-    <item name="detail_body_line_spacing_multiplier" format="float" type="fraction">1.25</item>
+    <dimen name="text_small">12sp</dimen>
+    <dimen name="text_medium">16sp</dimen>
+    <dimen name="text_large">32sp</dimen>
 
     <dimen name="fab_elevation">2dp</dimen>
     <dimen name="fab_press_translation_z">6dp</dimen>
     <dimen name="fab_margin">24dp</dimen>
-
+    <dimen name="toolbar_elevation">4dp</dimen>
+    <dimen name="margin_medium">16dp</dimen>
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="dim_zero">0dp</dimen>
+    <dimen name="extra_small_margin">4dp</dimen>
+    <dimen name="card_elevation">4dp</dimen>
+    <dimen name="collapsing_toolbar_margin_start">48dp</dimen>
+    <dimen name="collapsing_toolbar_margin_end">64dp</dimen>
+    <dimen name="image_details_text">28sp</dimen>
+    <dimen name="flexible_space_height">240dp</dimen>
+    <dimen name="flexible_space_show_fab_offset">120dp</dimen>
+    <dimen name="toolbar_margin_start">72dp</dimen>
+    <dimen name="overlay_height">240dp</dimen>
+    <dimen name="margin_large">32dp</dimen>
 </resources>

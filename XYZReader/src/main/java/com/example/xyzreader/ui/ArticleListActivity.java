@@ -1,5 +1,6 @@
 package com.example.xyzreader.ui;
 
+import android.annotation.SuppressLint;
 import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -9,15 +10,12 @@ import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.text.Html;
 import android.text.format.DateUtils;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -37,39 +35,46 @@ import java.util.GregorianCalendar;
  * handset and tablet-size devices. On handsets, the activity presents a list of items, which when
  * touched, lead to a {@link ArticleDetailActivity} representing item details. On tablets, the
  * activity presents a grid of items as cards.
- */
-public class ArticleListActivity extends ActionBarActivity implements
-        LoaderManager.LoaderCallbacks<Cursor> {
+ */public class ArticleListActivity extends AppCompatActivity implements
+        LoaderManager.LoaderCallbacks<Cursor>, SwipeRefreshLayout.OnRefreshListener {
 
     private static final String TAG = ArticleListActivity.class.toString();
-    private Toolbar mToolbar;
+
     private SwipeRefreshLayout mSwipeRefreshLayout;
     private RecyclerView mRecyclerView;
 
+    @SuppressLint("SimpleDateFormat")
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss");
     // Use default locale format
+    @SuppressLint("SimpleDateFormat")
     private SimpleDateFormat outputFormat = new SimpleDateFormat();
     // Most time functions can only handle 1902 - 2037
     private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
+    private boolean mIsRefreshing = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_article_list);
-
-        mToolbar = (Toolbar) findViewById(R.id.toolbar);
-
-
-        final View toolbarContainerView = findViewById(R.id.toolbar_container);
-
-        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
-
-        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        viewSetting();
         getLoaderManager().initLoader(0, null, this);
-
         if (savedInstanceState == null) {
             refresh();
         }
+    }
+
+    private void viewSetting() {
+        Toolbar mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(mToolbar);
+        try {
+            getSupportActionBar().setTitle("");
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
+        mSwipeRefreshLayout.setOnRefreshListener(this);
+        mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
     }
 
     private void refresh() {
@@ -88,8 +93,6 @@ public class ArticleListActivity extends ActionBarActivity implements
         super.onStop();
         unregisterReceiver(mRefreshingReceiver);
     }
-
-    private boolean mIsRefreshing = false;
 
     private BroadcastReceiver mRefreshingReceiver = new BroadcastReceiver() {
         @Override
@@ -126,10 +129,15 @@ public class ArticleListActivity extends ActionBarActivity implements
         mRecyclerView.setAdapter(null);
     }
 
+    @Override
+    public void onRefresh() {
+        refresh();
+    }
+
     private class Adapter extends RecyclerView.Adapter<ViewHolder> {
         private Cursor mCursor;
 
-        public Adapter(Cursor cursor) {
+        Adapter(Cursor cursor) {
             mCursor = cursor;
         }
 
@@ -170,19 +178,18 @@ public class ArticleListActivity extends ActionBarActivity implements
             holder.titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
             Date publishedDate = parsePublishedDate();
             if (!publishedDate.before(START_OF_EPOCH.getTime())) {
-
-                holder.subtitleView.setText(Html.fromHtml(
-                        DateUtils.getRelativeTimeSpanString(
-                                publishedDate.getTime(),
-                                System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
-                                DateUtils.FORMAT_ABBREV_ALL).toString()
-                                + "<br/>" + " by "
-                                + mCursor.getString(ArticleLoader.Query.AUTHOR)));
+                String date = DateUtils.getRelativeTimeSpanString(
+                        publishedDate.getTime(),
+                        System.currentTimeMillis(), DateUtils.HOUR_IN_MILLIS,
+                        DateUtils.FORMAT_ABBREV_ALL).toString();
+                String author = mCursor.getString(ArticleLoader.Query.AUTHOR);
+                String subtitle = date + "\n" + author;
+                holder.subtitleView.setText(subtitle);
             } else {
-                holder.subtitleView.setText(Html.fromHtml(
-                        outputFormat.format(publishedDate)
-                        + "<br/>" + " by "
-                        + mCursor.getString(ArticleLoader.Query.AUTHOR)));
+                String date = outputFormat.format(publishedDate);
+                String author = mCursor.getString(ArticleLoader.Query.AUTHOR);
+                String subtitle = date + "\n" + author;
+                holder.subtitleView.setText(subtitle);
             }
             holder.thumbnailView.setImageUrl(
                     mCursor.getString(ArticleLoader.Query.THUMB_URL),
@@ -196,12 +203,12 @@ public class ArticleListActivity extends ActionBarActivity implements
         }
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        public DynamicHeightNetworkImageView thumbnailView;
-        public TextView titleView;
-        public TextView subtitleView;
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        DynamicHeightNetworkImageView thumbnailView;
+        TextView titleView;
+        TextView subtitleView;
 
-        public ViewHolder(View view) {
+        ViewHolder(View view) {
             super(view);
             thumbnailView = (DynamicHeightNetworkImageView) view.findViewById(R.id.thumbnail);
             titleView = (TextView) view.findViewById(R.id.article_title);

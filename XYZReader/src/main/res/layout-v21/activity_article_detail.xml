@@ -20,7 +20,9 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         app:titleTextColor="@android:color/white"
+        android:elevation="@dimen/toolbar_elevation"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+        android:backgroundTint="@android:color/transparent"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
 
     </FrameLayout>
